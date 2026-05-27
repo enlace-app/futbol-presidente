@@ -474,3 +474,51 @@ function render() {
 
 // ── INICIO ───────────────────────────────────────────────────────────────────
 window.onload = () => showScreen("intro");
+// ==========================
+// SISTEMA DE EVENTOS
+// ==========================
+
+const eventos = [
+  {
+    titulo: "Jugador descontento",
+    descripcion: "Tu delantero estrella está enfadado por jugar poco.",
+    efecto: {
+      moral: -5
+    }
+  },
+
+  {
+    titulo: "Patrocinador nuevo",
+    descripcion: "Una empresa local quiere patrocinar al club.",
+    efecto: {
+      dinero: 500000
+    }
+  },
+
+  {
+    titulo: "Lesión importante",
+    descripcion: "Un jugador clave estará lesionado 3 meses.",
+    efecto: {
+      moral: -10
+    }
+  }
+];
+
+function generarEvento() {
+  const evento = eventos[Math.floor(Math.random() * eventos.length)];
+
+  alert(
+    evento.titulo + "\n\n" + evento.descripcion
+  );
+
+  // Aplicar efectos
+  if (evento.efecto.moral) {
+    club.moral += evento.efecto.moral;
+  }
+
+  if (evento.efecto.dinero) {
+    club.presupuesto += evento.efecto.dinero;
+  }
+
+  actualizarPantalla();
+}
