@@ -170,7 +170,10 @@ function simularPartido() {
 
   showResultBanner(myGoals, theirGoals, rival.name, result);
   render();
-  generarNarrativaPartido(myGoals, theirGoals, rival.name, result);
+
+generarEvento();
+
+generarNarrativaPartido(myGoals, theirGoals, rival.name, result);
 }
 
 function showResultBanner(mg, tg, rival, result) {
@@ -513,12 +516,12 @@ function generarEvento() {
 
   // Aplicar efectos
   if (evento.efecto.moral) {
-    club.moral += evento.efecto.moral;
-  }
+  G.morale += evento.efecto.moral;
+}
 
-  if (evento.efecto.dinero) {
-    club.presupuesto += evento.efecto.dinero;
-  }
+if (evento.efecto.dinero) {
+  G.budget += evento.efecto.dinero;
+}
 
-  actualizarPantalla();
+render();
 }
