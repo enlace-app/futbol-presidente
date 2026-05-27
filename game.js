@@ -508,20 +508,17 @@ const eventos = [
 ];
 
 function generarEvento() {
+  if (G.matchesPlayed % 3 !== 0) return; // solo cada 3 partidos
   const evento = eventos[Math.floor(Math.random() * eventos.length)];
 
-  alert(
-    evento.titulo + "\n\n" + evento.descripcion
-  );
+  addNews(`⚡ EVENTO: ${evento.titulo} — ${evento.descripcion}`);
 
-  // Aplicar efectos
   if (evento.efecto.moral) {
-  G.morale += evento.efecto.moral;
-}
+    G.morale = Math.min(100, Math.max(20, G.morale + evento.efecto.moral));
+  }
+  if (evento.efecto.dinero) {
+    G.budget += evento.efecto.dinero / 1000000; // convertir a millones
+  }
 
-if (evento.efecto.dinero) {
-  G.budget += evento.efecto.dinero;
-}
-
-render();
+  render();
 }
