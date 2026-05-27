@@ -1,13 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fútbol Presidente</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div id="app"></div>
-  <script src="game.js"></script>
+
+<!-- ══ PANTALLA: INTRO ══════════════════════════════════ -->
+<div id="screen-intro" class="screen active">
+  <div class="intro">
+    <div class="logo">🏟️</div>
+    <h1>FÚTBOL<br><span>PRESIDENTE</span></h1>
+    <p>SIMULADOR DE GESTIÓN FUTBOLÍSTICA</p>
+    <div class="desc">
+      Asume el control de uno de los grandes clubes del mundo.
+      Ficha estrellas, gestiona el presupuesto, toma decisiones
+      históricas y lleva a tu club a la gloria.
+    </div>
+    <button class="btn btn-gold" onclick="showScreen('select')">▶ COMENZAR</button>
+  </div>
+</div>
+
+<!-- ══ PANTALLA: ELEGIR EQUIPO ══════════════════════════ -->
+<div id="screen-select" class="screen">
+  <div style="padding:24px 16px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:26px;font-weight:700;letter-spacing:3px">ELIGE TU CLUB</div>
+      <div style="color:#666;font-size:11px;letter-spacing:2px;margin-top:4px">¿A QUIÉN VAS A PRESIDIR?</div>
+    </div>
+    <input id="president-name" type="text" placeholder="Tu nombre como presidente..."
+      style="width:100%;background:#111827;border:1px solid #1e2535;border-radius:10px;
+             padding:12px 16px;color:#fff;font-family:inherit;font-size:15px;
+             margin-bottom:20px;box-sizing:border-box"/>
+    <div id="team-list"></div>
+  </div>
+</div>
+
+<!-- ══ PANTALLA: JUEGO PRINCIPAL ════════════════════════ -->
+<div id="screen-main" class="screen">
+
+  <!-- Cabecera -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-name" id="h-nombre">PRESIDENTE</div>
+        <div class="header-sub"  id="h-season">TEMPORADA 1 · JORNADA 0</div>
+      </div>
+      <span style="font-size:36px" id="h-badge">⚽</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="val" id="h-budget">—</div><div class="lbl">PRESUP.</div></div>
+      <div class="stat-box"><div class="val" id="h-points">0</div><div class="lbl">PUNTOS</div></div>
+      <div class="stat-box"><div class="val" id="h-strength">—</div><div class="lbl">POTENCIAL</div></div>
+      <div class="stat-box"><div class="val" id="h-morale">—</div><div class="lbl">MORAL</div></div>
+    </div>
+  </div>
+
+  <!-- Banner resultado -->
+  <div id="result-banner" class="result-banner" style="display:none"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard" onclick="showTab('dashboard')">📊</button>
+    <button class="tab" data-tab="squad"     onclick="showTab('squad')">👥</button>
+    <button class="tab" data-tab="transfers" onclick="showTab('transfers')">💼</button>
+    <button class="tab" data-tab="match"     onclick="showTab('match')">⚽</button>
+    <button class="tab" data-tab="cultura"   onclick="showTab('cultura')">🏛️</button>
+    <button class="tab" data-tab="advisor"   onclick="showTab('advisor')">🧠</button>
+  </div>
+
+  <!-- ── TAB: DASHBOARD ── -->
+  <div id="tab-dashboard" class="tab-content">
+    <div id="stats-dashboard" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px"></div>
+    <div class="card">
+      <div class="card-title">ÚLTIMAS NOTICIAS</div>
+      <div id="news-list"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB: PLANTILLA ── -->
+  <div id="tab-squad" class="tab-content" style="display:none">
+    <div class="card-title" style="margin-bottom:8px">PLANTILLA COMPLETA</div>
+    <div id="squad-list"></div>
+  </div>
+
+  <!-- ── TAB: FICHAJES ── -->
+  <div id="tab-transfers" class="tab-content" style="display:none">
+    <div id="transfer-list"></div>
+  </div>
+
+  <!-- ── TAB: PARTIDO ── -->
+  <div id="tab-match" class="tab-content" style="display:none">
+    <div class="card" style="text-align:center;padding:32px 16px">
+      <div style="font-size:48px;margin-bottom:12px">🏟️</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:6px" id="match-jornada">Jornada 1 · Liga Española</div>
+      <div style="color:#666;font-size:13px;margin-bottom:24px" id="match-info"></div>
+      <button class="btn btn-gold" onclick="simularPartido()">▶ JUGAR PARTIDO</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">CRÓNICA DEL PARTIDO</div>
+      <div id="narrativa-match" class="narrative-box">Aquí aparecerá la crónica tras jugar.</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">CLASIFICACIÓN</div>
+      <div id="clasificacion"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB: CULTURA ── -->
+  <div id="tab-cultura" class="tab-content" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">ADN DEL CLUB</div>
+      <div style="color:#aaa;font-size:13px;line-height:1.6">
+        Define la identidad de tu club. Estas decisiones afectan
+        al rendimiento, los fichajes y la narrativa del juego.
+      </div>
+    </div>
+    <div id="cultura-list"></div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">NARRATIVA DE DECISIONES</div>
+      <div id="narrativa-evento" class="narrative-box">Aquí aparecerán las consecuencias de tus decisiones.</div>
+    </div>
+  </div>
+
+  <!-- ── TAB: CONSEJERO IA ── -->
+  <div id="tab-advisor" class="tab-content" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="width:44px;height:44px;border-radius:50%;
+                    background:linear-gradient(135deg,#7c3aed,#2563eb);
+                    display:flex;align-items:center;justify-content:center;font-size:22px">🧠</div>
+        <div>
+          <div style="font-weight:700;font-size:16px">Consejero IA</div>
+          <div style="font-size:11px;color:#666">Experto en gestión deportiva</div>
+        </div>
+      </div>
+      <div class="card-title">CONSULTAS RÁPIDAS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="btn btn-gray" style="font-size:11px;padding:10px;text-align:left;line-height:1.4"
+          onclick="consultarConsejero('¿Cómo puedo mejorar la moral del equipo?')">
+          ¿Cómo mejorar la moral?</button>
+        <button class="btn btn-gray" style="font-size:11px;padding:10px;text-align:left;line-height:1.4"
+          onclick="consultarConsejero('¿Qué jugador debería fichar primero?')">
+          ¿A quién fichar?</button>
+        <button class="btn btn-gray" style="font-size:11px;padding:10px;text-align:left;line-height:1.4"
+          onclick="consultarConsejero('Analiza el estado actual de mi equipo')">
+          Analiza mi equipo</button>
+        <button class="btn btn-gray" style="font-size:11px;padding:10px;text-align:left;line-height:1.4"
+          onclick="consultarConsejero('¿Cómo aumentar los ingresos del club?')">
+          ¿Cómo ganar dinero?</button>
+      </div>
+      <div id="narrativa-consejero" class="narrative-box">Pulsa una pregunta para consultar al consejero.</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">PREGUNTA LIBRE</div>
+      <textarea id="custom-question" rows="3" placeholder="Escribe tu pregunta..."
+        style="width:100%;background:#0a0e1a;border:1px solid #1e2535;border-radius:8px;
+               padding:12px;color:#fff;font-family:inherit;font-size:13px;
+               resize:none;margin-bottom:10px;box-sizing:border-box"></textarea>
+      <button class="btn btn-primary" onclick="preguntaLibre()">🧠 CONSULTAR</button>
+    </div>
+  </div>
+
+</div><!-- fin screen-main -->
+
+<!-- ══ MODAL ════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <p  id="modal-body"></p>
+    <button id="modal-confirm" class="btn btn-success" style="margin-bottom:8px">✅ CONFIRMAR</button>
+    <button class="btn btn-gray" onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+<script>
+// Render lista de equipos en pantalla select
+window.addEventListener('load', () => {
+  const tl = document.getElementById('team-list');
+  Object.entries(TEAMS).forEach(([name, data]) => {
+    tl.innerHTML += `
+      <div class="team-card" onclick="iniciarJuego('${name}')">
+        <div style="display:flex;align-items:center">
+          <span class="team-badge">${data.badge}</span>
+          <div>
+            <div class="team-name">${name}</div>
+            <div class="team-info">Presupuesto: ${data.budget}M€ · Prestigio: ${data.prestige}/100</div>
+          </div>
+        </div>
+        <div style="background:${data.color};border-radius:8px;padding:8px 14px;
+                    font-size:12px;font-weight:700;color:#fff">ELEGIR</div>
+      </div>`;
+  });
+});
+
+function iniciarJuego(team) {
+  const name = document.getElementById('president-name').value.trim();
+  initGame(team, name);
+  document.getElementById('h-badge').textContent = TEAMS[team].badge;
+  document.getElementById('match-info').textContent =
+    `Potencial: ${teamStrength()}/100 · Moral: ${G.morale}%`;
+}
+
+function preguntaLibre() {
+  const q = document.getElementById('custom-question').value.trim();
+  if (q) consultarConsejero(q);
+}
+</script>
 </body>
 </html>
