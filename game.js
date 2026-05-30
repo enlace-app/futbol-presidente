@@ -1,5 +1,5 @@
 // ============================================================================
-// FÚTBOL PRESIDENTE — MOTOR DE SIMULACIÓN ULTRA REALISTA (CON LESIONES Y CANTERA)
+// FÚTBOL PRESIDENTE — MOTOR CON RUEDAS DE PRENSA, MORAL Y AFICIÓN
 // ============================================================================
 
 const SEEDS_TEAMS = {
@@ -39,9 +39,41 @@ const TRANSFERS = [
   { name:"Nico Williams", pos:"DEL", rating:86, age:23, value:85, salary:9, club:"Athletic Club", fatigue:0, injuryWeeks:0 }
 ];
 
-// Nombres para el generador de canteranos (fútbol español)
-const APELLIDOS_CANTERA = ["Mendoza", "García", "Rodríguez", "Navarro", "Torres", "Prieto", "Soler", "Vidal", "Ruiz", "Marin"];
+const APELLIDOS_CANTERA = ["Mendoza", "García", "Rodríguez", "Navarro", "Torres", "Prieto", "Soler", "Vidal", "Ruiz", "Marín"];
 const DEMARCACIONES = ["POR", "DEF", "MED", "DEL"];
+
+// Banco de datos de Ruedas de prensa situacionales
+const BANCO_PREGUNTAS = {
+  victoria: [
+    {
+      q: "El equipo ha ganado con solvencia hoy. ¿Considera que esta plantilla está lista para ganar el título sin fichajes?",
+      options: [
+        { text: "Sí, confío ciegamente en este vestuario. Son los mejores.", morale: 15, fans: 5, budget: 0 },
+        { text: "Hemos ganado, pero hacen falta refuerzos galácticos si queremos competir.", morale: -10, fans: 10, budget: 0 },
+        { text: "Paso a paso, la euforia es peligrosa. Mantengamos la calma.", morale: 0, fans: 0, budget: 0 }
+      ]
+    }
+  ],
+  derrota: [
+    {
+      q: "Derrota dolorosa hoy. La afición empieza a impacientarse con el rendimiento del equipo táctico. ¿Quién es el responsable?",
+      options: [
+        { text: "Los jugadores no han estado a la altura del escudo. Exijo más.", morale: -20, fans: 15, budget: 0 },
+        { text: "El planteamiento ha sido mío. Asumo toda la culpa de la caída.", morale: 15, fans: -10, budget: 0 },
+        { text: "El arbitraje nos ha perjudicado claramente. Ha sido un robo.", morale: 5, fans: 10, budget: -2 } // Multa económica de la federación
+      ]
+    }
+  ],
+  neutral: [
+    {
+      q: "Los auditores sugieren que el club necesita reducir gastos salariales. ¿Contempla vender estrellas?",
+      options: [
+        { text: "Nadie es intransferible si llega una oferta millonaria.", morale: -15, fans: -5, budget: 10 }, // Te da un bonus financiero inmediato
+        { text: "Este club es rico y mantendremos a nuestros galácticos intactos.", morale: 10, fans: 15, budget: -5 }
+      ]
+    }
+  ]
+};
 
 let G = {};
 
@@ -60,7 +92,6 @@ function renderTeamList() {
 
 function iniciarJuego(teamName) {
   const pres = document.getElementById("president-name").value.trim() || "Presidente";
-  
   const listaLiga = [];
   Object.keys(SEEDS_TEAMS).forEach(name => {
     const seed = SEEDS_TEAMS[name];
@@ -78,9 +109,10 @@ function iniciarJuego(teamName) {
     team: teamName, president: pres,
     players: pStarter.map(p => ({ ...p })),
     budget: SEEDS_TEAMS[teamName].budget, week: 1,
+    morale: 100, fans: 100, // Inicialización de variables de ambiente
     cultura: { ...SEEDS_TEAMS[teamName].cultura },
-    news: ["🖋️ Contrato oficial firmado. Proyecto deportivo inaugurado."],
-    liga: listaLiga, historialPartidos: []
+    news: ["🖋️ Dirección deportiva asumida. Comienzan las ruedas de prensa."],
+    liga: listaLiga, calendario: [], ultimaSituacion: "neutral"
   };
 
   document.getElementById("sb-pres").textContent = G.president;
@@ -112,88 +144,60 @@ function generarCalendarioLiga() {
   G.calendario = jornadas;
 }
 
-// Calcula la potencia colectiva EXCLUYENDO a los jugadores lesionados de la media
+// INVERSIÓN ADICTIVA: La moral del vestuario afecta directamente la fuerza real en el campo
 function teamStrength() {
   const disponibles = G.players.filter(p => p.injuryWeeks <= 0);
-  if (!disponibles.length) return 40; // Penalización masiva si no tienes jugadores sanos
-  return Math.round(disponibles.reduce((s,p) => s + p.rating, 0) / disponibles.length);
+  if (!disponibles.length) return 40;
+  const mediaBase = Math.round(disponibles.reduce((s,p) => s + p.rating, 0) / disponibles.length);
+  
+  // Modificador por moral alta/baja: puede sumar hasta +3 o restar hasta -6 de fuerza colectiva
+  const modificadorMoral = Math.floor((G.morale - 80) / 10);
+  return Math.max(50, mediaBase + modificadorMoral);
 }
 
-// ── ROTACIONES Y CONTROL DE DESGASTE ──
 function rotarJugador(id) {
   const p = G.players.find(x => x.id === id);
   if (!p || p.injuryWeeks > 0) return;
-  p.fatigue = Math.max(0, p.fatigue - 35); // Dar descanso reduce drásticamente el cansancio
-  G.news.unshift(`💤 ROTACIÓN: Descanso otorgado a ${p.name}. Fatiga reducida.`);
+  p.fatigue = Math.max(0, p.fatigue - 35);
+  G.news.unshift(`💤 ROTACIÓN: Descanso otorgado a ${p.name}.`);
   renderWorkspace();
 }
 
-// ── SISTEMA DE CANTERA INNOVADOR ──
 function promocionarCanterano() {
-  // Coste base por enviar ojeadores a las categorías inferiores
   const costeScouting = 2; 
   if (G.budget < costeScouting) {
-    abrirModal("ACADEMIA SIN FONDOS", "No tienes el capital mínimo de 2M€ solicitado para financiar el desarrollo de juveniles.");
+    abrirModal("SIN FONDOS", "Se requieren 2M€ para mandar ojeadores.");
     return;
   }
-
   G.budget -= costeScouting;
-  
-  // Algoritmo de talento: afectado positivamente por tu nivel de infraestructura en Cantera
-  const bonusInfraestructura = Math.floor(G.cultura.cantera / 20);
-  const ratingBase = 62 + Math.floor(Math.random() * 12) + bonusInfraestructura;
-  const edad = 16 + Math.floor(Math.random() * 4);
-  const apellido = APELLIDOS_CANTERA[Math.floor(Math.random() * APELLIDOS_CANTERA.length)];
-  const pos = DEMARCACIONES[Math.floor(Math.random() * DEMARCACIONES.length)];
-  const valor = Math.round((ratingBase - 50) * 1.5);
-
+  const ratingBase = 62 + Math.floor(Math.random() * 12) + Math.floor(G.cultura.cantera / 20);
   const nuevoCanterano = {
-    id: Date.now(),
-    name: "C. " + apellido,
-    pos: pos,
-    rating: ratingBase,
-    age: edad,
-    salary: 0.5, // Salario bajo contractual de juvenil
-    value: valor,
-    fatigue: 0,
-    injuryWeeks: 0
+    id: Date.now(), name: "C. " + APELLIDOS_CANTERA[Math.floor(Math.random() * APELLIDOS_CANTERA.length)],
+    pos: DEMARCACIONES[Math.floor(Math.random() * DEMARCACIONES.length)], rating: ratingBase, age: 17, salary: 0.5, value: Math.round((ratingBase - 50) * 1.5), fatigue: 0, injuryWeeks: 0
   };
-
   G.players.push(nuevoCanterano);
-  G.news.unshift(`🌳 ACADEMIA: ${nuevoCanterano.name} (${nuevoCanterano.pos}) asciende al primer equipo.`);
-  
-  abrirModal("⚡ PROMOCIÓN EXITOSA", `Tus entrenadores de filiales han descubierto a ${nuevoCanterano.name}. Media inicial de ${nuevoCanterano.rating} con ficha de cantera.`);
+  G.news.unshift(`🌳 ACADEMIA: ${nuevoCanterano.name} sube al primer equipo.`);
   renderWorkspace();
 }
 
 function simularJornadaCompleta() {
   const totalJornadas = G.calendario.length;
-  if (G.week > totalJornadas) {
-    abrirModal("FIN DE TEMPORADA", "La liga ha terminado.");
-    return;
-  }
+  if (G.week > totalJornadas) return;
 
-  // 1. PROCESAR LESIONES ACTUALES Y DESGASTE FÍSICO PREVIO
+  // Desgaste y enfermería
   G.players.forEach(p => {
     if (p.injuryWeeks > 0) {
       p.injuryWeeks--;
-      if(p.injuryWeeks === 0) G.news.unshift(`🏥 ALTA MÉDICA: ${p.name} se ha recuperado y entrena con el grupo.`);
     } else {
-      // Si el jugador está sano y juega, acumula fatiga aleatoria por esfuerzo
       p.fatigue += 12 + Math.floor(Math.random() * 15);
-      
-      // ALGORITMO DE LESIÓN PROBABILÍSTICA: A mayor fatiga, más probabilidad de caer lesionado
-      const umbralLesion = p.fatigue / 120; // Si fatiga llega a 100, la probabilidad base es altísima
-      if (Math.random() < umbralLesion && G.week > 1) {
-        const semanasLesionado = 1 + Math.floor(Math.random() * 4);
-        p.injuryWeeks = semanasLesionado;
-        p.fatigue = 10; // La fatiga se resetea al estar inactivo
-        G.news.unshift(`🚨 ENFERMERÍA: ${p.name} sufre una rotura muscular. De baja ${semanasLesionado} semanas.`);
+      if (Math.random() < (p.fatigue / 120) && G.week > 1) {
+        p.injuryWeeks = 2 + Math.floor(Math.random() * 3);
+        p.fatigue = 10;
+        G.news.unshift(`🚨 ENFERMERÍA: ${p.name} lesionado.`);
       }
     }
   });
 
-  // 2. SIMULACIÓN DE LOS ENCUENTROS DE LIGA
   const partidosHoy = G.calendario[G.week - 1];
   let cronicaTuPartido = "";
 
@@ -205,8 +209,7 @@ function simularJornadaCompleta() {
     const strVis   = (eqVis.name === G.team) ? teamStrength() : eqVis.strength;
 
     const diff = (strLocal + 2) - strVis;
-    const factorAleatorio = (Math.random() - 0.5) * 18;
-    const formulaMecanica = diff + factorAleatorio;
+    const formulaMecanica = diff + ((Math.random() - 0.5) * 18);
 
     let golesLocal = Math.max(0, Math.round(Math.random() * 2 + (formulaMecanica > 3 ? 1 : 0)));
     let golesVis   = Math.max(0, Math.round(Math.random() * 2 + (formulaMecanica < -3 ? 1 : 0)));
@@ -225,46 +228,78 @@ function simularJornadaCompleta() {
       const gRival  = (partido.local === G.team) ? golesVis : golesLocal;
       const rivalName = (partido.local === G.team) ? partido.visitante : partido.local;
       
-      let resLabel = "empate";
-      if(gTuClub > gRival) resLabel = "victoria";
-      if(gTuClub < gRival) resLabel = "derrota";
-
-      cronicaTuPartido = `Marcador final ante ${rivalName}: ${gTuClub} - ${gRival}.`;
-      showResultBanner(gTuClub, gRival, rivalName, resLabel);
+      G.ultimaSituacion = (gTuClub > gRival) ? "victoria" : (gTuClub === gRival) ? "neutral" : "derrota";
+      cronicaTuPartido = `Resultado final: ${G.team} ${gTuClub} - ${gRival} ${rivalName}.`;
+      showResultBanner(gTuClub, gRival, rivalName, G.ultimaSituacion);
       G.news.unshift(`J${G.week}: ${G.team} ${gTuClub}-${gRival} ${rivalName}`);
     }
   });
 
-  // Balance económico semanal
+  // SISTEMA ADICTIVO DE INGRESOS POR TAQUILLA: Afectado radicalmente por el porcentaje de afición activa
+  const ingresosTaquilla = Math.round((4 + (G.fans / 25)) * 10) / 10;
   const sueldos = G.players.reduce((sum, p) => sum + (p.salary / 10), 0);
-  G.budget = Math.max(0, Math.round((G.budget - sueldos) * 10) / 10);
+  G.budget = Math.max(0, Math.round((G.budget + ingresosTaquilla - sueldos) * 10) / 10);
 
   G.week++;
-  document.getElementById("narrativa-match").textContent = cronicaTuPartido + " Revisa los informes médicos y la condición de fatiga de la plantilla.";
+  document.getElementById("narrativa-match").textContent = cronicaTuPartido + " Los periodistas te esperan en la sala de prensa de forma obligatoria.";
   
   G.liga.sort((a,b) => {
     if(b.points !== a.points) return b.points - a.points;
     return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
   });
 
+  // Activar y forzar la aparición de la rueda de prensa interactiva en la pestaña correspondiente
+  cargarRuedaPrensa();
+  renderWorkspace();
+}
+
+// ── PROGRAMACIÓN LOGICA DE LA RUEDA DE PRENSA ──
+function cargarRuedaPrensa() {
+  const pool = BANCO_PREGUNTAS[G.ultimaSituacion] || BANCO_PREGUNTAS["neutral"];
+  const preguntaAleatoria = pool[Math.floor(Math.random() * pool.length)];
+  
+  const card = document.getElementById("press-conference-card");
+  const qBox = document.getElementById("press-question");
+  const oBox = document.getElementById("press-options");
+
+  if (!card || !qBox || !oBox) return;
+
+  qBox.textContent = `"${preguntaAleatoria.q}"`;
+  oBox.innerHTML = "";
+
+  preguntaAleatoria.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "press-btn";
+    btn.textContent = opt.text;
+    btn.onclick = () => procesarRespuestaPrensa(opt);
+    oBox.appendChild(btn);
+  });
+
+  card.style.display = "block";
+}
+
+function procesarRespuestaPrensa(opcion) {
+  // Aplicar consecuencias al estado global del club
+  G.morale = Math.min(100, Math.max(0, G.morale + opcion.morale));
+  G.fans   = Math.min(100, Math.max(0, G.fans + opcion.fans));
+  G.budget = Math.max(0, Math.round((G.budget + opcion.budget) * 10) / 10);
+
+  G.news.unshift(`📰 PRENSA: Declaraciones del presidente realizadas.`);
+  
+  // Ocultar la rueda de prensa tras responder
+  document.getElementById("press-conference-card").style.display = "none";
+  
+  abrirModal("📊 REPERCUSIONES DE PRENSA", `Efectos en el club:\nMoral: ${opcion.morale >= 0 ? '+' : ''}${opcion.morale}%\nAfición: ${opcion.fans >= 0 ? '+' : ''}${opcion.fans}%\nFinanzas: ${opcion.budget}M€`);
   renderWorkspace();
 }
 
 function showResultBanner(mg, tg, rival, result) {
   const banner = document.getElementById("result-banner");
   if (!banner) return;
-  const colors = { victoria:["#064e3b","#10b981"], empate:["#78350f","#f59e0b"], derrota:["#7f1d1d","#ef4444"] };
+  const colors = { victoria:["#064e3b","#10b981"], neutral:["#78350f","#f59e0b"], derrota:["#7f1d1d","#ef4444"] };
   const [bg, accent] = colors[result];
-  banner.style.background = bg;
-  banner.style.border = `1px solid ${accent}`;
-  banner.style.display = "flex";
-  banner.innerHTML = `
-    <div>
-      <div style="font-size:10px; color:#94a3b8; letter-spacing:1px; font-weight:bold;">INFORME DE JORNADA</div>
-      <div class="result-score">${G.team} ${mg} - ${tg} ${rival}</div>
-    </div>
-    <div style="color:${accent}; font-weight:900; font-family:'Orbitron';">${result.toUpperCase()}</div>
-  `;
+  banner.style.background = bg; banner.style.border = `1px solid ${accent}`; banner.style.display = "flex";
+  banner.innerHTML = `<div><div style="font-size:10px; color:#94a3b8; font-weight:bold;">COMPETICIÓN LIGA</div><div class="result-score">${G.team} ${mg} - ${tg} ${rival}</div></div><div style="color:${accent}; font-weight:900; font-family:'Orbitron';">${result.toUpperCase()}</div>`;
 }
 
 function abrirModal(titulo, cuerpo) {
@@ -279,7 +314,6 @@ function navigate(categoria, subcategoria) {
   document.querySelectorAll(".subpanel").forEach(p => p.style.display = "none");
   const activeSub = document.getElementById(`sub-${subcategoria}`);
   if (activeSub) activeSub.style.display = "block";
-  document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
   renderWorkspace();
 }
 
@@ -305,26 +339,40 @@ function renderWorkspace() {
   document.getElementById("tb-budget").textContent = G.budget + "M€";
   document.getElementById("tb-pos").textContent = miPosicionIdx + "º";
   document.getElementById("tb-week").textContent = G.week;
+  
+  // Imprimir contadores dinámicos en la barra global
+  document.getElementById("tb-morale").textContent = G.morale + "%";
+  document.getElementById("tb-fans").textContent = G.fans + "%";
+  
+  const dashPos = document.getElementById("dash-pos-text");
+  if(dashPos) dashPos.textContent = miPosicionIdx + "º clasificado";
 
   const fixBox = document.getElementById("fixture-next-match");
   if (fixBox && G.calendario[G.week - 1]) {
     const miPartido = G.calendario[G.week - 1].find(p => p.local === G.team || p.visitante === G.team);
     if(miPartido) {
-      fixBox.innerHTML = `Próximo Rival: <span style="color:var(--neon)">${miPartido.local === G.team ? miPartido.visitante : miPartido.local}</span>`;
+      fixBox.innerHTML = `Siguiente cruce: <span style="color:var(--neon)">${miPartido.local === G.team ? miPartido.visitante : miPartido.local}</span>`;
     }
   }
 
+  // Fuerza real afectada por la moral
   const str = teamStrength();
   const graph = document.getElementById("graph-strength");
   if (graph) {
     graph.style.setProperty("--p", str);
     graph.innerHTML = `<span>${str}</span>`;
   }
+  const lblMod = document.getElementById("label-strength-mod");
+  if (lblMod) {
+    lblMod.innerHTML = `POTENCIA REAL CON AFECTACIÓN DE MORAL: <span style="color:var(--neon2)">${G.morale}%</span>`;
+  }
 
   const finPres = document.getElementById("fin-pres");
   if (finPres) {
     finPres.textContent = G.budget + "M€";
     document.getElementById("fin-salarios").textContent = G.players.reduce((sum, p) => sum + (p.salary / 10), 0).toFixed(1) + "M€ / sem";
+    // Renderizado del cálculo dinámico por venta de entradas
+    document.getElementById("fin-taquilla").textContent = "+" + (Math.round((4 + (G.fans / 25)) * 10) / 10) + "M€ por abonos";
   }
 
   const db = document.getElementById("stats-dashboard");
@@ -359,37 +407,29 @@ function renderWorkspace() {
   const nl = document.getElementById("news-list");
   if (nl) nl.innerHTML = G.news.map(n => `<div class="news-item">${n}</div>`).join("");
 
-  // RENDER INTERACTIVO DE PLANTILLA CON SISTEMA MÉDICO
   const sq = document.getElementById("squad-list");
   if (sq) {
-    sq.innerHTML = `<h3 style="margin: 15px 0 10px 0;">📋 ESTADO DE FORMA Y SALUD</h3>` + G.players.map(p => {
+    sq.innerHTML = `<h3 style="margin: 15px 0 10px 0;">📋 ESTADO DE FORMA</h3>` + G.players.map(p => {
       const estaLesionado = p.injuryWeeks > 0;
       const statusClass = estaLesionado ? 'status-injured' : 'status-fit';
-      const statusText = estaLesionado ? `Baja (${p.injuryWeeks} sem)` : 'Disponible';
-      // Ajustar color de la barra de fatiga: Verde -> Amarillo -> Rojo
+      const statusText = estaLesionado ? `Baja` : 'Sano';
       const fatigaColor = p.fatigue > 70 ? 'var(--red)' : p.fatigue > 40 ? 'var(--gold)' : 'var(--green)';
 
       return `
         <div class="player-card" style="${estaLesionado ? 'opacity: 0.6; border-left: 3px solid var(--red);' : ''}">
           <div class="player-row-main">
-            <div>
-              <span class="pos-badge" style="background:rgba(0,240,255,0.1); color:var(--neon)">${p.pos}</span>
-              <b>${p.name}</b> <small style="color:var(--muted)">Años: ${p.age}</small>
-            </div>
+            <div><span class="pos-badge" style="background:rgba(0,240,255,0.1); color:var(--neon)">${p.pos}</span> <b>${p.name}</b></div>
             <div style="display:flex; gap:20px; align-items:center;">
               <span class="${statusClass} status-badge">${statusText}</span>
               <span class="rating">${estaLesionado ? '--' : p.rating}</span>
             </div>
           </div>
-          
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.85rem;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="color:var(--muted)">Fatiga: ${p.fatigue}%</span>
+              <span>Cansancio: ${p.fatigue}%</span>
               <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, p.fatigue)}%; background:${fatigaColor}"></div></div>
             </div>
-            <div>
-              ${!estaLesionado && p.fatigue > 0 ? `<button class="btn btn-gray" onclick="rotarJugador(${p.id})" style="padding:2px 8px; font-size:11px;">💤 ROTAR</button>` : ''}
-            </div>
+            <div>${!estaLesionado && p.fatigue > 0 ? `<button class="btn btn-gray" onclick="rotarJugador(${p.id})" style="padding:2px 8px; font-size:11px;">💤 ROTAR</button>` : ''}</div>
           </div>
         </div>
       `;
