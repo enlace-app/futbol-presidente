@@ -3,120 +3,154 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fútbol Presidente</title>
+  <title>Fútbol Presidente Pro</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <div id="app">
 
+  <!-- ══ PANTALLA INTRO ══ -->
   <div id="screen-intro" class="screen active">
     <div class="intro">
       <div class="logo">🏟️</div>
       <h1>FÚTBOL<br><span>PRESIDENTE</span></h1>
-      <p class="sub">SIMULADOR DE GESTIÓN · TEMPORADA 2026</p>
-      <p class="desc">Toma el control de un gigante europeo. Administra finanzas, lidia con el vestuario, negocia fichajes galácticos y toma decisiones críticas de club.</p>
-      <button class="btn btn-neon" onclick="showScreen('select');renderTeamList()">▶ NUEVA TEMPORADA</button>
+      <p class="sub">DIRECCIÓN DEPORTIVA · EDICIÓN 2026</p>
+      <button class="btn btn-neon" onclick="showScreen('select');renderTeamList()">▶ EMPEZAR PARTIDA</button>
     </div>
   </div>
 
+  <!-- ══ PANTALLA SELECCIÓN ══ -->
   <div id="screen-select" class="screen">
     <div class="container">
-      <div class="section-title">ELIGE TU CLUB Y CREA TU PERFIL</div>
-      <input id="president-name" class="retro-input" type="text" placeholder="Tu nombre como presidente..."/>
+      <div class="section-title">CONFIGURACIÓN DEL CONTRATO</div>
+      <input id="president-name" class="retro-input" type="text" placeholder="Nombre del Presidente..."/>
       <div style="margin-bottom:16px;"></div>
       <div id="team-selector-list" class="team-list-container"></div>
       <button class="btn btn-gray" onclick="showScreen('intro')" style="margin-top:15px; width:100%;">◀ VOLVER</button>
     </div>
   </div>
 
-  <div id="screen-main" class="screen">
-    <header class="game-header">
-      <div class="header-top">
-        <span id="h-badge"></span>
-        <h2 id="h-nombre">-</h2>
+  <!-- ══ PANTALLA PRINCIPAL CON MENÚ LATERAL ══ -->
+  <div id="screen-main" class="screen main-layout">
+    
+    <!-- MENÚ LATERAL DESPLEGABLE (SIDEBAR) -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="avatar">👨‍💼</div>
+        <div>
+          <div id="sb-pres">-</div>
+          <div id="sb-team" style="font-size:11px; color:var(--neon); font-family:'Orbitron';">-</div>
+        </div>
       </div>
-      <div class="header-stats">
-        <div class="stat-box">💸 <span id="h-budget">0M€</span></div>
-        <div class="stat-box">📊 <span id="h-points">0 PTS</span></div>
-        <div class="stat-box">💪 <span id="h-strength">0/100</span></div>
-        <div class="stat-box">❤️ <span id="h-morale">0%</span></div>
-      </div>
-      <div class="header-bottom">
-        <span id="h-season">-</span>
-      </div>
-    </header>
-
-    <div id="result-banner" class="result-banner" style="display:none;"></div>
-
-    <div class="actions-bar">
-      <button class="btn btn-neon btn-large" onclick="simularPartido()">⚽ JUGAR PARTIDO Y AVANZAR SEMANA</button>
-    </div>
-
-    <nav class="tabs-nav">
-      <button class="tab active" data-tab="oficina" onclick="showTab('oficina')">🏢 OFICINA</button>
-      <button class="tab" data-tab="plantilla" onclick="showTab('plantilla')">📋 PLANTILLA</button>
-      <button class="tab" data-tab="mercado" onclick="showTab('mercado')">🤝 MERCADO</button>
-      <button class="tab" data-tab="cultura" onclick="showTab('cultura')">🏛️ CULTURA</button>
-    </nav>
-
-    <main class="tabs-container">
       
-      <section id="tab-oficina" class="tab-content">
-        <div class="grid-2">
-          <div class="card event-card">
-            <h3>⚡ EVENTOS Y DECISIONES</h3>
-            <p id="evento-texto">No hay eventos pendientes esta semana. Todo está en calma.</p>
-            <div id="evento-impacto" class="impacto-label"></div>
-            <div id="evento-acciones" style="display:none; gap:10px; margin-top:15px;">
-              <button onclick="responderEvento(true)" class="btn btn-primary">ACEPTAR</button>
-              <button onclick="responderEvento(false)" class="btn btn-gray">RECHAZAR</button>
+      <nav class="sidebar-nav">
+        <!-- SECCIÓN: OPERACIONES -->
+        <div class="nav-category">🏢 CORPORATIVO</div>
+        <button class="nav-link active" onclick="navigate('corporativo', 'resumen')">📊 Resumen General</button>
+        <button class="nav-link" onclick="navigate('corporativo', 'finanzas')">📈 Balances Financieros</button>
+        <button class="nav-link" onclick="navigate('corporativo', 'prensa')">📰 Sala de Prensa</button>
+
+        <!-- SECCIÓN: DEPORTIVO -->
+        <div class="nav-category">⚽ DEPORTIVO</div>
+        <button class="nav-link" onclick="navigate('deportivo', 'primer-equipo')">📋 Primer Equipo</button>
+        <button class="nav-link" onclick="navigate('deportivo', 'tactica')">📐 Pizarra e Identidad</button>
+
+        <!-- SECCIÓN: MERCADO -->
+        <div class="nav-category">🤝 NEGOCIACIONES</div>
+        <button class="nav-link" onclick="navigate('mercado', 'fichajes')">🌟 Mercado Galáctico</button>
+      </nav>
+    </aside>
+
+    <!-- CONTENEDOR DE CONTENIDO PRINCIPAL -->
+    <div class="main-content">
+      <header class="top-bar">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="top-bar-stats">
+          <div class="mini-stat">💰 <span id="tb-budget">0M€</span></div>
+          <div class="mini-stat">🏆 <span id="tb-points">0 PTS</span></div>
+          <div class="mini-stat">📅 Sem. <span id="tb-week">1</span></div>
+        </div>
+      </header>
+
+      <!-- BANNER DE RESULTADO -->
+      <div id="result-banner" class="result-banner" style="display:none;"></div>
+
+      <!-- PANEL CENTRAL DINÁMICO -->
+      <main class="workspace">
+        
+        <!-- ================= SUB-CATEGORÍAS: CORPORATIVO ================= -->
+        <div id="sub-resumen" class="subpanel">
+          <div class="card neon-border">
+            <h3>🎛️ ACCIONES ESTRATÉGICAS</h3>
+            <button class="btn btn-neon btn-large" onclick="simularPartido()">⚽ SIMULAR PRÓXIMA JORNADA</button>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>📈 RENDIMIENTO EN LIGA</h3>
+              <div id="stats-dashboard" class="stats-grid"></div>
             </div>
-            <button id="btn-nuevo-evento" onclick="lanzarEvento()" class="btn btn-secondary" style="margin-top:15px; width:100%;">BUSCAR EXPANSIÓN O INVERSIÓN</button>
-            <div id="narrativa-evento" class="narrative-box" style="margin-top:10px;"></div>
+            <div class="card">
+              <h3>🔋 POTENCIA Y RENDIMIENTO COLECTIVO</h3>
+              <div class="radial-progress-container">
+                <div class="radial-progress" id="graph-strength" style="--p:0; --c:var(--neon);">0</div>
+                <div class="radial-label">MEDIA DEL EQUIPO</div>
+              </div>
+            </div>
           </div>
+        </div>
 
+        <div id="sub-finanzas" class="subpanel" style="display:none;">
           <div class="card">
-            <h3>✍️ ÚLTIMA CRÓNICA DE PRENSA</h3>
-            <div id="narrativa-match" class="narrative-box">Aún no se ha disputado ningún encuentro esta temporada.</div>
+            <h3>📊 BALANCE FINANCIERO DE TESORERÍA</h3>
+            <div class="financial-chart-box">
+              <div class="chart-row"><span>Presupuesto Neto Líquido</span><strong id="fin-pres" style="color:var(--green)">0M€</strong></div>
+              <div class="chart-row"><span>Gasto Salarial Prorrateado Semanal</span><strong id="fin-salarios" style="color:var(--red)">0M€</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>🤝 CONSEJERO DE ADMINISTRACIÓN</h3>
+            <p id="narrativa-consejero" class="narrative-box">Selecciona tus estrategias para ver la viabilidad del ejercicio.</p>
+            <div class="chat-input-row" style="display:flex; gap:8px; margin-top:10px;">
+              <input id="custom-question" class="retro-input" type="text" placeholder="¿Cómo evalúas el margen de Fair Play?..."/>
+              <button onclick="preguntaLibre()" class="btn btn-neon">CONSULTAR</button>
+            </div>
           </div>
         </div>
 
-        <div class="card chat-card" style="margin-top:15px;">
-          <h3>🤖 CONSEJERO DE ADMINISTRACIÓN</h3>
-          <div id="narrativa-consejero" class="narrative-box">Pregúntame sobre el estado financiero, el rendimiento deportivo o las decisiones de plantilla.</div>
-          <div class="chat-input-row" style="display:flex; gap:8px; margin-top:10px;">
-            <input id="custom-question" class="retro-input" type="text" placeholder="¿Debo vender jugadores para sanear el club?..." style="flex:1;"/>
-            <button onclick="preguntaLibre()" class="btn btn-neon" style="padding:0 20px;">CONSULTAR</button>
+        <div id="sub-prensa" class="subpanel" style="display:none;">
+          <div class="card">
+            <h3>📰 CORRESPONSALES Y ÚLTIMA HORA</h3>
+            <div id="narrativa-match" class="narrative-box">Esperando el debut liguero de la temporada...</div>
+          </div>
+          <div class="card">
+            <h3>📜 NOTIFICACIONES OFICIALES</h3>
+            <div id="news-list" class="news-list"></div>
           </div>
         </div>
 
-        <div class="card news-card" style="margin-top:15px;">
-          <h3>📰 DIARIO DE NOTICIAS</h3>
-          <div id="news-list" class="news-list"></div>
+        <!-- ================= SUB-CATEGORÍAS: DEPORTIVO ================= -->
+        <div id="sub-primer-equipo" class="subpanel" style="display:none;">
+          <div id="squad-list"></div>
         </div>
 
-        <div id="stats-dashboard" class="stats-grid" style="margin-top:15px;"></div>
-      </section>
+        <div id="sub-tactica" class="subpanel" style="display:none;">
+          <div id="cultura-list"></div>
+        </div>
 
-      <section id="tab-plantilla" class="tab-content" style="display:none;">
-        <div id="squad-list"></div>
-      </section>
+        <!-- ================= SUB-CATEGORÍAS: MERCADO ================= -->
+        <div id="sub-fichajes" class="subpanel" style="display:none;">
+          <div id="transfer-list"></div>
+        </div>
 
-      <section id="tab-mercado" class="tab-content" style="display:none;">
-        <div id="transfer-list"></div>
-      </section>
-
-      <section id="tab-cultura" class="tab-content" style="display:none;">
-        <div id="cultura-list"></div>
-      </section>
-
-    </main>
+      </main>
+    </div>
   </div>
 
+  <!-- MODAL GLOBAL -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal">
-      <h3 id="modal-title">Título del Modal</h3>
-      <p id="modal-body">Cuerpo del modal...</p>
+      <h3 id="modal-title">-</h3>
+      <p id="modal-body">-</p>
       <div class="modal-buttons">
         <button id="modal-confirm" class="btn btn-neon">CONFIRMAR</button>
         <button onclick="cerrarModal()" class="btn btn-gray">CERRAR</button>
