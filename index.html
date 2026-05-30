@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fútbol Presidente Pro - Gestión de Plantilla</title>
+  <title>Fútbol Presidente Pro - Sala de Prensa</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -63,8 +63,9 @@
         <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
         <div class="top-bar-stats">
           <div class="mini-stat">💰 <span id="tb-budget">0M€</span></div>
-          <div class="mini-stat">🏆 Pos: <span id="tb-pos">-</span></div>
-          <div class="mini-stat">📅 Jornada <span id="tb-week">1</span>/38</div>
+          <div class="mini-stat">🎭 Mor: <span id="tb-morale" style="color:var(--neon2)">100%</span></div>
+          <div class="mini-stat">🔊 Afic: <span id="tb-fans" style="color:var(--gold)">100%</span></div>
+          <div class="mini-stat">📅 J. <span id="tb-week">1</span>/38</div>
         </div>
       </header>
 
@@ -81,14 +82,17 @@
           </div>
           <div class="grid-2">
             <div class="card">
-              <h3>📈 TU HISTORIAL EN LIGA</h3>
+              <h3>📈 CLASIFICACIÓN EXPRESO</h3>
               <div id="stats-dashboard" class="stats-grid"></div>
+              <div style="margin-top:15px; text-align:center;">
+                <span style="font-size:0.9rem; color:var(--muted)">Tu posición actual: </span><strong id="dash-pos-text" style="color:var(--neon)">-</strong>
+              </div>
             </div>
             <div class="card">
-              <h3>🔋 POTENCIA COLECTIVA</h3>
+              <h3>🔋 POTENCIA REAL (+MODIFICADORES)</h3>
               <div class="radial-progress-container">
                 <div class="radial-progress" id="graph-strength" style="--p:0; --c:var(--neon);">0</div>
-                <div class="radial-label">MEDIA VALORATIVA</div>
+                <div class="radial-label" id="label-strength-mod">MEDIA VALORATIVA BASE</div>
               </div>
             </div>
           </div>
@@ -101,20 +105,22 @@
             <div class="financial-chart-box">
               <div class="chart-row"><span>Presupuesto Neto Líquido</span><strong id="fin-pres" style="color:var(--green)">0M€</strong></div>
               <div class="chart-row"><span>Gasto Salarial Semanal Prorrateado</span><strong id="fin-salarios" style="color:var(--red)">0M€</strong></div>
-            </div>
-          </div>
-          <div class="card">
-            <h3>🤝 CONSEJERO DE ADMINISTRACIÓN</h3>
-            <p id="narrativa-consejero" class="narrative-box">Selecciona tus estrategias para ver la viabilidad del ejercicio.</p>
-            <div class="chat-input-row" style="display:flex; gap:8px; margin-top:10px;">
-              <input id="custom-question" class="retro-input" type="text" placeholder="¿Cómo evalúas el margen de Fair Play?..."/>
-              <button onclick="preguntaLibre()" class="btn btn-neon">CONSULTAR</button>
+              <div class="chart-row"><span>Ingresos por Taquilla e Hinchada</span><strong id="fin-taquilla" style="color:var(--green)">+0M€</strong></div>
             </div>
           </div>
         </div>
 
-        <!-- SUBpanel: PRENSA -->
+        <!-- SUBpanel: PRENSA INTERACTIVA -->
         <div id="sub-prensa" class="subpanel" style="display:none;">
+          <div class="card neon-border" id="press-conference-card" style="display:none; background: linear-gradient(135deg, #0f1626, #1e1b4b);">
+            <div class="press-header">
+              <span class="live-badge">🔴 RUEDA DE PRENSA EN DIRECTO</span>
+              <h3 style="margin-top:5px; color:#fff;">MICRÓFONOS ABIERTOS</h3>
+            </div>
+            <p id="press-question" class="narrative-box" style="font-size:1.1rem; color:var(--neon); font-style:italic;"></p>
+            <div id="press-options" class="press-options-container"></div>
+          </div>
+          
           <div class="card">
             <h3>📰 CORRESPONSALES Y ÚLTIMA HORA</h3>
             <div id="narrativa-match" class="narrative-box">Esperando el debut liguero de la temporada...</div>
@@ -152,7 +158,7 @@
 
         <!-- SUBpanel: PRIMER EQUIPO -->
         <div id="sub-primer-equipo" class="subpanel" style="display:none;">
-          <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #0f1626, #1e1b4b);">
+          <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: #0f1626;">
             <div>
               <h3 style="color: var(--neon); margin: 0;">🌳 INSTALACIONES DE LA ACADEMIA</h3>
               <p style="font-size: 0.9rem; color: var(--muted); margin: 4px 0 0 0;">Promociona jóvenes talentos para suplir bajas o generar patrimonio.</p>
