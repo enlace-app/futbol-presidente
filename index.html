@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fútbol Presidente Pro - Temporada Completa</title>
+  <title>Fútbol Presidente Pro - Gestión de Plantilla</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <div id="app">
 
+  <!-- ══ PANTALLA INTRO ══ -->
   <div id="screen-intro" class="screen active">
     <div class="intro">
       <div class="logo">🏟️</div>
@@ -18,6 +19,7 @@
     </div>
   </div>
 
+  <!-- ══ PANTALLA SELECCIÓN ══ -->
   <div id="screen-select" class="screen">
     <div class="container">
       <div class="section-title">CONFIGURACIÓN DEL CONTRATO</div>
@@ -28,6 +30,7 @@
     </div>
   </div>
 
+  <!-- ══ PANTALLA PRINCIPAL CON MENÚ LATERAL ══ -->
   <div id="screen-main" class="screen main-layout">
     
     <aside id="sidebar" class="sidebar">
@@ -69,6 +72,7 @@
 
       <main class="workspace">
         
+        <!-- SUBpanel: RESUMEN -->
         <div id="sub-resumen" class="subpanel">
           <div class="card neon-border">
             <h3>🎛️ DESPACHO PRESIDENCIAL</h3>
@@ -90,6 +94,7 @@
           </div>
         </div>
 
+        <!-- SUBpanel: FINANZAS -->
         <div id="sub-finanzas" class="subpanel" style="display:none;">
           <div class="card">
             <h3>📊 BALANCE FINANCIERO DE TESORERÍA</h3>
@@ -108,6 +113,7 @@
           </div>
         </div>
 
+        <!-- SUBpanel: PRENSA -->
         <div id="sub-prensa" class="subpanel" style="display:none;">
           <div class="card">
             <h3>📰 CORRESPONSALES Y ÚLTIMA HORA</h3>
@@ -119,6 +125,7 @@
           </div>
         </div>
 
+        <!-- SUBpanel: CLASIFICACIÓN -->
         <div id="sub-clasificacion" class="subpanel" style="display:none;">
           <div class="card">
             <h3>🏆 CLASIFICACIÓN OFICIAL LALIGA 2026</h3>
@@ -143,14 +150,24 @@
           </div>
         </div>
 
+        <!-- SUBpanel: PRIMER EQUIPO -->
         <div id="sub-primer-equipo" class="subpanel" style="display:none;">
+          <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #0f1626, #1e1b4b);">
+            <div>
+              <h3 style="color: var(--neon); margin: 0;">🌳 INSTALACIONES DE LA ACADEMIA</h3>
+              <p style="font-size: 0.9rem; color: var(--muted); margin: 4px 0 0 0;">Promociona jóvenes talentos para suplir bajas o generar patrimonio.</p>
+            </div>
+            <button class="btn btn-neon" onclick="promocionarCanterano()">💎 ESCULTAR CANTERA</button>
+          </div>
           <div id="squad-list"></div>
         </div>
 
+        <!-- SUBpanel: TÁCTICA -->
         <div id="sub-tactica" class="subpanel" style="display:none;">
           <div id="cultura-list"></div>
         </div>
 
+        <!-- SUBpanel: FICHAJES -->
         <div id="sub-fichajes" class="subpanel" style="display:none;">
           <div id="transfer-list"></div>
         </div>
@@ -159,13 +176,13 @@
     </div>
   </div>
 
+  <!-- MODAL GLOBAL -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal">
       <h3 id="modal-title">-</h3>
       <p id="modal-body">-</p>
       <div class="modal-buttons">
-        <button id="modal-confirm" class="btn btn-neon">CONFIRMAR</button>
-        <button onclick="cerrarModal()" class="btn btn-gray">CERRAR</button>
+        <button id="modal-confirm" class="btn btn-neon" onclick="cerrarModal()">ACEPTAR</button>
       </div>
     </div>
   </div>
