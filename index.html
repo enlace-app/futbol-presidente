@@ -3,23 +3,21 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fútbol Presidente Pro</title>
+  <title>Fútbol Presidente Pro - Temporada Completa</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <div id="app">
 
-  <!-- ══ PANTALLA INTRO ══ -->
   <div id="screen-intro" class="screen active">
     <div class="intro">
       <div class="logo">🏟️</div>
       <h1>FÚTBOL<br><span>PRESIDENTE</span></h1>
-      <p class="sub">DIRECCIÓN DEPORTIVA · EDICIÓN 2026</p>
+      <p class="sub">DIRECCIÓN DEPORTIVA · EDICIÓN ULTRA REAL</p>
       <button class="btn btn-neon" onclick="showScreen('select');renderTeamList()">▶ EMPEZAR PARTIDA</button>
     </div>
   </div>
 
-  <!-- ══ PANTALLA SELECCIÓN ══ -->
   <div id="screen-select" class="screen">
     <div class="container">
       <div class="section-title">CONFIGURACIÓN DEL CONTRATO</div>
@@ -30,10 +28,8 @@
     </div>
   </div>
 
-  <!-- ══ PANTALLA PRINCIPAL CON MENÚ LATERAL ══ -->
   <div id="screen-main" class="screen main-layout">
     
-    <!-- MENÚ LATERAL DESPLEGABLE (SIDEBAR) -->
     <aside id="sidebar" class="sidebar">
       <div class="sidebar-header">
         <div class="avatar">👨‍💼</div>
@@ -44,56 +40,51 @@
       </div>
       
       <nav class="sidebar-nav">
-        <!-- SECCIÓN: OPERACIONES -->
         <div class="nav-category">🏢 CORPORATIVO</div>
         <button class="nav-link active" onclick="navigate('corporativo', 'resumen')">📊 Resumen General</button>
         <button class="nav-link" onclick="navigate('corporativo', 'finanzas')">📈 Balances Financieros</button>
         <button class="nav-link" onclick="navigate('corporativo', 'prensa')">📰 Sala de Prensa</button>
 
-        <!-- SECCIÓN: DEPORTIVO -->
         <div class="nav-category">⚽ DEPORTIVO</div>
+        <button class="nav-link" onclick="navigate('deportivo', 'clasificacion')">🏆 Tabla de Clasificación</button>
         <button class="nav-link" onclick="navigate('deportivo', 'primer-equipo')">📋 Primer Equipo</button>
         <button class="nav-link" onclick="navigate('deportivo', 'tactica')">📐 Pizarra e Identidad</button>
 
-        <!-- SECCIÓN: MERCADO -->
         <div class="nav-category">🤝 NEGOCIACIONES</div>
         <button class="nav-link" onclick="navigate('mercado', 'fichajes')">🌟 Mercado Galáctico</button>
       </nav>
     </aside>
 
-    <!-- CONTENEDOR DE CONTENIDO PRINCIPAL -->
     <div class="main-content">
       <header class="top-bar">
         <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
         <div class="top-bar-stats">
           <div class="mini-stat">💰 <span id="tb-budget">0M€</span></div>
-          <div class="mini-stat">🏆 <span id="tb-points">0 PTS</span></div>
-          <div class="mini-stat">📅 Sem. <span id="tb-week">1</span></div>
+          <div class="mini-stat">🏆 Pos: <span id="tb-pos">-</span></div>
+          <div class="mini-stat">📅 Jornada <span id="tb-week">1</span>/38</div>
         </div>
       </header>
 
-      <!-- BANNER DE RESULTADO -->
       <div id="result-banner" class="result-banner" style="display:none;"></div>
 
-      <!-- PANEL CENTRAL DINÁMICO -->
       <main class="workspace">
         
-        <!-- ================= SUB-CATEGORÍAS: CORPORATIVO ================= -->
         <div id="sub-resumen" class="subpanel">
           <div class="card neon-border">
-            <h3>🎛️ ACCIONES ESTRATÉGICAS</h3>
-            <button class="btn btn-neon btn-large" onclick="simularPartido()">⚽ SIMULAR PRÓXIMA JORNADA</button>
+            <h3>🎛️ DESPACHO PRESIDENCIAL</h3>
+            <div id="fixture-next-match" style="margin-bottom:12px; font-weight:bold; color:var(--text); font-size:1.1rem;"></div>
+            <button id="btn-jugar-jornada" class="btn btn-neon btn-large" onclick="simularJornadaCompleta()">⚽ SIMULAR JORNADA COMPLETA</button>
           </div>
           <div class="grid-2">
             <div class="card">
-              <h3>📈 RENDIMIENTO EN LIGA</h3>
+              <h3>📈 TU HISTORIAL EN LIGA</h3>
               <div id="stats-dashboard" class="stats-grid"></div>
             </div>
             <div class="card">
-              <h3>🔋 POTENCIA Y RENDIMIENTO COLECTIVO</h3>
+              <h3>🔋 POTENCIA COLECTIVA</h3>
               <div class="radial-progress-container">
                 <div class="radial-progress" id="graph-strength" style="--p:0; --c:var(--neon);">0</div>
-                <div class="radial-label">MEDIA DEL EQUIPO</div>
+                <div class="radial-label">MEDIA VALORATIVA</div>
               </div>
             </div>
           </div>
@@ -104,7 +95,7 @@
             <h3>📊 BALANCE FINANCIERO DE TESORERÍA</h3>
             <div class="financial-chart-box">
               <div class="chart-row"><span>Presupuesto Neto Líquido</span><strong id="fin-pres" style="color:var(--green)">0M€</strong></div>
-              <div class="chart-row"><span>Gasto Salarial Prorrateado Semanal</span><strong id="fin-salarios" style="color:var(--red)">0M€</strong></div>
+              <div class="chart-row"><span>Gasto Salarial Semanal Prorrateado</span><strong id="fin-salarios" style="color:var(--red)">0M€</strong></div>
             </div>
           </div>
           <div class="card">
@@ -128,7 +119,30 @@
           </div>
         </div>
 
-        <!-- ================= SUB-CATEGORÍAS: DEPORTIVO ================= -->
+        <div id="sub-clasificacion" class="subpanel" style="display:none;">
+          <div class="card">
+            <h3>🏆 CLASIFICACIÓN OFICIAL LALIGA 2026</h3>
+            <div class="table-container">
+              <table class="retro-table">
+                <thead>
+                  <tr>
+                    <th>POS</th>
+                    <th style="text-align:left;">CLUB</th>
+                    <th>PTS</th>
+                    <th>PJ</th>
+                    <th>PG</th>
+                    <th>PE</th>
+                    <th>PP</th>
+                    <th>GF</th>
+                    <th>GC</th>
+                  </tr>
+                </thead>
+                <tbody id="clasificacion-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div id="sub-primer-equipo" class="subpanel" style="display:none;">
           <div id="squad-list"></div>
         </div>
@@ -137,7 +151,6 @@
           <div id="cultura-list"></div>
         </div>
 
-        <!-- ================= SUB-CATEGORÍAS: MERCADO ================= -->
         <div id="sub-fichajes" class="subpanel" style="display:none;">
           <div id="transfer-list"></div>
         </div>
@@ -146,7 +159,6 @@
     </div>
   </div>
 
-  <!-- MODAL GLOBAL -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal">
       <h3 id="modal-title">-</h3>
